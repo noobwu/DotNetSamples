@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace NoobCore.Messaging
 {
     /// <summary>
-    /// Util static generic class to create unique queue names for types
+    /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public static class QueueNames<T>
     {
         /// <summary>
-        /// 
+        /// Initializes the <see cref="QueueNames{T}"/> class.
         /// </summary>
         static QueueNames()
         {
@@ -24,28 +24,43 @@ namespace NoobCore.Messaging
         }
 
         /// <summary>
-        /// 
+        /// 优先较高的队列名称
         /// </summary>
+        /// <value>
+        /// The priority.
+        /// </value>
         public static string Priority { get; private set; }
 
         /// <summary>
-        /// 
+        /// 点对点队列模式队列名称
         /// </summary>
+        /// <value>
+        /// The in.
+        /// </value>
         public static string In { get; private set; }
-        /// <summary>
-        /// 
-        /// </summary>
 
+        /// <summary>
+        /// 主题订阅模式队列名称
+        /// </summary>
+        /// <value>
+        /// The out.
+        /// </value>
         public static string Out { get; private set; }
-        /// <summary>
-        /// 
-        /// </summary>
 
+        /// <summary>
+        /// Gets the DLQ.
+        /// </summary>
+        /// <value>
+        /// The DLQ.
+        /// </value>
         public static string Dlq { get; private set; }
-        /// <summary>
-        /// 
-        /// </summary>
 
+        /// <summary>
+        /// Gets all queue names.
+        /// </summary>
+        /// <value>
+        /// All queue names.
+        /// </value>
         public static string[] AllQueueNames
         {
             get
@@ -66,49 +81,49 @@ namespace NoobCore.Messaging
     public class QueueNames
     {
         /// <summary>
-        /// 
+        /// The exchange
         /// </summary>
         public static string Exchange = "mx.noobcore";
         /// <summary>
-        /// 
+        /// The exchange DLQ
         /// </summary>
         public static string ExchangeDlq = "mx.noobcore.dlq";
         /// <summary>
-        /// 
+        /// The exchange topic
         /// </summary>
         public static string ExchangeTopic = "mx.noobcore.topic";
 
         /// <summary>
-        /// 
+        /// The mq prefix
         /// </summary>
         public static string MqPrefix = "mq:";
         /// <summary>
-        /// 
+        /// The queue prefix
         /// </summary>
         public static string QueuePrefix = "";
         /// <summary>
-        /// 
+        /// The temporary mq prefix
         /// </summary>
         public static string TempMqPrefix = MqPrefix + "tmp:";
         /// <summary>
-        /// 
+        /// The topic in
         /// </summary>
         public static string TopicIn = MqPrefix + "topic:in";
         /// <summary>
-        /// 
+        /// The topic out
         /// </summary>
         public static string TopicOut = MqPrefix + "topic:out";
 
         /// <summary>
-        /// 
+        /// The resolve queue name function
         /// </summary>
         public static Func<string, string, string> ResolveQueueNameFn = ResolveQueueName;
 
         /// <summary>
-        /// 
+        /// Resolves the name of the queue.
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="queueSuffix"></param>
+        /// <param name="typeName">Name of the type.</param>
+        /// <param name="queueSuffix">The queue suffix.</param>
         /// <returns></returns>
         public static string ResolveQueueName(string typeName, string queueSuffix)
         {
@@ -116,10 +131,12 @@ namespace NoobCore.Messaging
         }
 
         /// <summary>
-        /// 
+        /// Determines whether [is temporary queue] [the specified queue name].
         /// </summary>
-        /// <param name="queueName"></param>
-        /// <returns></returns>
+        /// <param name="queueName">Name of the queue.</param>
+        /// <returns>
+        ///   <c>true</c> if [is temporary queue] [the specified queue name]; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsTempQueue(string queueName)
         {
             return queueName != null
@@ -127,9 +144,9 @@ namespace NoobCore.Messaging
         }
 
         /// <summary>
-        /// 
+        /// Sets the queue prefix.
         /// </summary>
-        /// <param name="prefix"></param>
+        /// <param name="prefix">The prefix.</param>
         public static void SetQueuePrefix(string prefix)
         {
             TopicIn = prefix + MqPrefix + "topic:in";
@@ -139,14 +156,14 @@ namespace NoobCore.Messaging
         }
 
         /// <summary>
-        /// 
+        /// The message type
         /// </summary>
         private readonly Type messageType;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <see cref="QueueNames"/> class.
         /// </summary>
-        /// <param name="messageType"></param>
+        /// <param name="messageType">Type of the message.</param>
         public QueueNames(Type messageType)
         {
             this.messageType = messageType;

@@ -1,5 +1,4 @@
-﻿using NoobCore.Interfaces;
-using NoobCore.Messaging;
+﻿using NoobCore.Messaging;
 using NoobCore.RabbitMq;
 using NUnit.Framework;
 using RabbitMQ.Client;
@@ -23,15 +22,21 @@ namespace NoobCore.Tests.MessagingQueue.RabbitMq
             msgFactory=new RabbitMqMessageFactory();
         }
         /// <summary>
-        /// 
+        /// 测试消息发送给普通队列
         /// </summary>
         [TestCase]
-        public void PublishNormalMsg() {
+        public void PublishMessage() {
             QueueNames.SetQueuePrefix("site1.");
             using var channel = Connection.CreateModel();
             var request = new HelloIntro { Name = "World" };
             var requestInq = MessageFactory.Create(request).ToInQueueName();
             Assert.That(requestInq, Is.EqualTo("site1.mq:HelloIntro.inq"));
+            PublishMessageFilter = (queueName, properties, msg) =>
+            {
+                properties.AppId = $"app:{queueName}";
+                properties.DeliveryMode = 2;//设置消息为持久化
+                properties.Expiration = (100 * 1000).ToString();//TTL  
+            };
             Publish(request);
         }
         /// <summary>
@@ -77,7 +82,7 @@ namespace NoobCore.Tests.MessagingQueue.RabbitMq
         public virtual void Publish(string queueName, IMessage message, string exchange)
         {
             var props = Channel.CreateBasicProperties();
-            props.Persistent = true;
+            props.Persistent = true;//是否持久化
             props.PopulateFromMessage(message);
 
             if (message.Meta != null)
@@ -89,7 +94,7 @@ namespace NoobCore.Tests.MessagingQueue.RabbitMq
                 }
             }
 
-            //PublishMessageFilter?.Invoke(queueName, props, message);
+            PublishMessageFilter?.Invoke(queueName, props, message);
 
             var messageBytes = message.Body.ToJson().ToUtf8Bytes();
 
@@ -150,16 +155,19 @@ Channel.RegisterQueueByName(routingKey);
         }
 
         /// <summary>
-        /// 
+        /// The MSG factory
         /// </summary>
         protected readonly RabbitMqMessageFactory msgFactory;
         /// <summary>
-        /// 
+        /// The connection
         /// </summary>
         private IConnection connection;
         /// <summary>
-        /// 
+        /// Gets the connection.
         /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         public IConnection Connection
         {
             get
@@ -171,6 +179,13 @@ Channel.RegisterQueueByName(routingKey);
                 return connection;
             }
         }
+        /// <summary>
+        /// Gets or sets the publish message filter.
+        /// </summary>
+        /// <value>
+        /// The publish message filter.
+        /// </value>
+        public Action<string, IBasicProperties, IMessage> PublishMessageFilter { get; set; }
         //http://www.rabbitmq.com/blog/2012/04/25/rabbitmq-performance-measurements-part-2/
         //http://www.rabbitmq.com/amqp-0-9-1-reference.html        
         /// <summary>
@@ -212,16 +227,23 @@ Channel.RegisterQueueByName(routingKey);
     public class RabbitMqMessageFactory : IDisposable
     {
         /// <summary>
-        /// 
+        /// Gets the connection factory.
         /// </summary>
+        /// <value>
+        /// The connection factory.
+        /// </value>
         public ConnectionFactory ConnectionFactory { get; private set; }
         /// <summary>
-        /// 
+        /// The retry count
         /// </summary>
         private int retryCount;
         /// <summary>
-        /// 
+        /// Gets or sets the retry count.
         /// </summary>
+        /// <value>
+        /// The retry count.
+        /// </value>
+        /// <exception cref="System.ArgumentOutOfRangeException">RetryCount - Rabbit MQ RetryCount must be 0-1</exception>
         public int RetryCount
         {
             get => retryCount;
@@ -309,8 +331,11 @@ Channel.RegisterQueueByName(routingKey);
     public class HelloIntro : IReturn<HelloIntroResponse>
     {
         /// <summary>
-        /// 
+        /// Gets or sets the name.
         /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
         public string Name { get; set; }
     }
     /// <summary>
@@ -319,8 +344,11 @@ Channel.RegisterQueueByName(routingKey);
     public class HelloIntroResponse
     {
         /// <summary>
-        /// 
+        /// Gets or sets the result.
         /// </summary>
+        /// <value>
+        /// The result.
+        /// </value>
         public string Result { get; set; }
     }
 }

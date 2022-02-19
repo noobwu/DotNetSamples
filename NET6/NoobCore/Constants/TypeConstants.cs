@@ -118,5 +118,28 @@ namespace NoobCore
         /// The empty object dictionary
         /// </summary>
         public static readonly Dictionary<string, object> EmptyObjectDictionary = new Dictionary<string, object>();
+        /// <summary>
+        /// The empty object list
+        /// </summary>
+        public static readonly List<object> EmptyObjectList = new List<object>(0);
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public static class TypeConstants<T>
+    {
+        /// <summary>
+        /// The empty array
+        /// </summary>
+        public static readonly T[] EmptyArray = new T[0];
+        /// <summary>
+        /// The empty list
+        /// </summary>
+        public static readonly List<T> EmptyList = new List<T>(0);
+        /// <summary>
+        /// The empty hash set
+        /// </summary>
+        public static readonly HashSet<T> EmptyHashSet = new HashSet<T>();
     }
 }

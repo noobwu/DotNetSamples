@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 /// <summary>
 /// 
 /// </summary>
-namespace NoobCore.Interfaces
+namespace NoobCore
 {
+
     /// <summary>
     /// 
     /// </summary>

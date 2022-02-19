@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Url：https://github.com/ServiceStack/ServiceStack/blob/main/ServiceStack/src/ServiceStack.RabbitMq/RabbitMqExtensions.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -241,6 +242,77 @@ namespace NoobCore.RabbitMq
                     props.Headers = new Dictionary<string, object>();
                 props.Headers["Error"] = message.Error.ToJson();
             }
+        }
+
+        /// <summary>
+        /// Converts to message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="msgResult">The MSG result.</param>
+        /// <returns></returns>
+        /// <exception cref="System.NotSupportedException">Unknown Content-Type: " + props.ContentType</exception>
+        public static IMessage<T> ToMessage<T>(this BasicGetResult msgResult)
+        {
+            if (msgResult == null)
+                return null;
+
+            var props = msgResult.BasicProperties;
+            T body;
+
+            if (string.IsNullOrEmpty(props.ContentType) || props.ContentType.MatchesContentType(MimeTypes.Json))
+            {
+                var json = msgResult.Body.ToArray().FromUtf8Bytes();
+                body = json.FromJson<T>();
+            }
+            else
+            {
+                throw new NotSupportedException("Unknown Content-Type: " + props.ContentType);
+            }
+            var message = new Message<T>(body)
+            {
+                Id = props.MessageId != null ? Guid.Parse(props.MessageId) : new Guid(),
+                CreatedDate = ((int)props.Timestamp.UnixTime).FromUnixTime(),
+                Priority = props.Priority,
+                ReplyTo = props.ReplyTo,
+                Tag = msgResult.DeliveryTag.ToString(),
+                RetryAttempts = msgResult.Redelivered ? 1 : 0,
+            };
+
+            if (props.CorrelationId != null)
+            {
+                message.ReplyId = Guid.Parse(props.CorrelationId);
+            }
+
+            if (props.Headers != null)
+            {
+                foreach (var entry in props.Headers)
+                {
+                    if (entry.Key == "Error")
+                    {
+                        var errors = entry.Value;
+                        if (errors != null)
+                        {
+                            var errorsJson = errors is byte[] errorBytes
+                                ? errorBytes.FromUtf8Bytes()
+                                : errors.ToString();
+                            message.Error = errorsJson.FromJson<ResponseStatus>();
+                        }
+                    }
+                    else
+                    {
+                        if (message.Meta == null)
+                            message.Meta = new Dictionary<string, string>();
+
+                        var value = entry.Value is byte[] bytes
+                            ? bytes.FromUtf8Bytes()
+                            : entry.Value?.ToString();
+
+                        message.Meta[entry.Key] = value;
+                    }
+                }
+            }
+
+            return message;
         }
     }
 }
