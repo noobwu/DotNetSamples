@@ -207,5 +207,40 @@ namespace NoobCore.RabbitMq
             return lowerCaseQueue.StartsWith("amq.")
                 || lowerCaseQueue.StartsWith(QueueNames.TempMqPrefix);
         }
+
+        /// <summary>
+        /// Populates from message.
+        /// </summary>
+        /// <param name="props">The props.</param>
+        /// <param name="message">The message.</param>
+        public static void PopulateFromMessage(this IBasicProperties props, IMessage message)
+        {
+            props.MessageId = message.Id.ToString();
+            props.Timestamp = new AmqpTimestamp(message.CreatedDate.ToUnixTime());
+            props.Priority = (byte)message.Priority;
+            props.ContentType = MimeTypes.Json;
+
+            if (message.Body != null)
+            {
+                props.Type = message.Body.GetType().Name;
+            }
+
+            if (message.ReplyTo != null)
+            {
+                props.ReplyTo = message.ReplyTo;
+            }
+
+            if (message.ReplyId != null)
+            {
+                props.CorrelationId = message.ReplyId.Value.ToString();
+            }
+
+            if (message.Error != null)
+            {
+                if (props.Headers == null)
+                    props.Headers = new Dictionary<string, object>();
+                props.Headers["Error"] = message.Error.ToJson();
+            }
+        }
     }
 }

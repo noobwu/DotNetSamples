@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NoobCore
@@ -89,5 +90,26 @@ namespace NoobCore
         /// <param name="defaultValue">The default value.</param>
         /// <returns></returns>
         public static int ToInt(this string text, int defaultValue) => int.TryParse(text, out var ret) ? ret : defaultValue;
+
+        /// <summary>
+        /// Converts to json.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj">The object.</param>
+        /// <returns></returns>
+        public static string ToJson<T>(this T obj)
+        {
+            return JsonSerializer.Serialize(obj);
+        }
+
+        /// <summary>
+        /// Converts to utf8bytes.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public static byte[] ToUtf8Bytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
+        }
     }
 }

@@ -27,19 +27,78 @@ namespace NoobCore.Tests.MessagingQueue.RabbitMq
         /// </summary>
         [TestCase]
         public void PublishNormalMsg() {
-            using var channel = connection.CreateModel();
+            QueueNames.SetQueuePrefix("site1.");
+            using var channel = Connection.CreateModel();
             var request = new HelloIntro { Name = "World" };
             var requestInq = MessageFactory.Create(request).ToInQueueName();
             Assert.That(requestInq, Is.EqualTo("site1.mq:HelloIntro.inq"));
-            channel.QueueDeclare(queue: requestInq, durable: false, exclusive: false, autoDelete: false, arguments: null);
-
-            string message = "Hello World!";
-            var body = Encoding.UTF8.GetBytes(message);
-
-            channel.BasicPublish(exchange: QueueNames.Exchange, routingKey: "hello", basicProperties: null, body: body);
-            Console.WriteLine($" [x] Sent {message}");
+            Publish(request);
         }
+        /// <summary>
+        /// Publishes the specified message body.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="messageBody">The message body.</param>
+        public virtual void Publish<T>(T messageBody)
+        {
+            if (messageBody is IMessage message)
+            {
+                Publish(message.ToInQueueName(), message);
+            }
+            else
+            {
+                Publish(new Message<T>(messageBody));
+            }
+        }
+        /// <summary>
+        /// Publishes the specified message.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message.</param>
+        public virtual void Publish<T>(IMessage<T> message)
+        {
+            Publish(message.ToInQueueName(), message);
+        }
+        /// <summary>
+        /// Publishes the specified queue name.
+        /// </summary>
+        /// <param name="queueName">Name of the queue.</param>
+        /// <param name="message">The message.</param>
+        public virtual void Publish(string queueName, IMessage message)
+        {
+            Publish(queueName, message, QueueNames.Exchange);
+        }
+        /// <summary>
+        /// Publishes the specified queue name.
+        /// </summary>
+        /// <param name="queueName">Name of the queue.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="exchange">The exchange.</param>
+        public virtual void Publish(string queueName, IMessage message, string exchange)
+        {
+            var props = Channel.CreateBasicProperties();
+            props.Persistent = true;
+            props.PopulateFromMessage(message);
 
+            if (message.Meta != null)
+            {
+                props.Headers = new Dictionary<string, object>();
+                foreach (var entry in message.Meta)
+                {
+                    props.Headers[entry.Key] = entry.Value;
+                }
+            }
+
+            //PublishMessageFilter?.Invoke(queueName, props, message);
+
+            var messageBytes = message.Body.ToJson().ToUtf8Bytes();
+
+            PublishMessage(exchange ?? QueueNames.Exchange,
+                routingKey: queueName,
+                basicProperties: props, body: messageBytes);
+
+            //OnPublishedCallback?.Invoke();
+        }
         static HashSet<string> Queues = new HashSet<string>();
         /// <summary>
         /// Publishes the message.
