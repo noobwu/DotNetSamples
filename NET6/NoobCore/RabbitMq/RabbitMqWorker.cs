@@ -5,6 +5,9 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using NoobCore.Logging;
 using NoobCore.Messaging;
+using RabbitMQ.Client.Events;
+using System.Text;
+using System.Threading.Channels;
 
 namespace NoobCore.RabbitMq
 {
@@ -242,7 +245,7 @@ namespace NoobCore.RabbitMq
                 {
                     DisposeMqClient();
                 }
-                catch {}
+                catch { }
 
                 //If it's in an invalid state, Dispose() this worker.
                 if (Interlocked.CompareExchange(ref status, WorkerStatus.Stopped, WorkerStatus.Stopping) != WorkerStatus.Stopping)
@@ -255,6 +258,10 @@ namespace NoobCore.RabbitMq
             }
         }
 
+
+        /// <summary>
+        /// Starts the polling.
+        /// </summary>
         private void StartPolling()
         {
             while (Interlocked.CompareExchange(ref status, 0, 0) == WorkerStatus.Started)
@@ -320,40 +327,47 @@ namespace NoobCore.RabbitMq
         /// </summary>
         private void StartSubscription()
         {
-            var consumer = ConnectSubscription();
-
-            // At this point, messages will be being asynchronously delivered,
-            // and will be queueing up in consumer.Queue.
-            while (true)
+            using (var barrier = new ManualResetEventSlim(false))
             {
-                try
+                var consumer = ConnectSubscription();
+                consumer.Received += (model, ea) =>
                 {
-                    /*
-                    var e = consumer.Queue.Dequeue();
+                    try
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var basicGetResult = new BasicGetResult(ea.DeliveryTag, ea.Redelivered, ea.Exchange, ea.RoutingKey, 0, ea.BasicProperties, ea.Body);
+                        messageHandler.ProcessMessage(mqClient, basicGetResult);
+                        mqFactory.GetMessageFilter?.Invoke(QueueName, basicGetResult);
+                     
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!(ex is OperationInterruptedException
+                            || ex is EndOfStreamException))
+                            throw;
 
-                    mqFactory.GetMessageFilter?.Invoke(QueueName, e);
-
-                    messageHandler.ProcessMessage(mqClient, e);
-                    */
-                }
-                catch (Exception ex)
-                {
-                    if (!(ex is OperationInterruptedException
-                        || ex is EndOfStreamException))
-                        throw;
-
-                    // The consumer was cancelled, the model closed, or the connection went away.
-                    if (Interlocked.CompareExchange(ref status, 0, 0) != WorkerStatus.Started
-                        || !AutoReconnect)
-                        return;
-
-                    //If it was an unexpected exception, try reconnecting
-                    consumer = WaitForReconnectSubscription();
-                }
+                        // The consumer was cancelled, the model closed, or the connection went away.
+                        if (Interlocked.CompareExchange(ref status, 0, 0) != WorkerStatus.Started
+                            || !AutoReconnect)
+                            return;
+                        //If it was an unexpected exception, try reconnecting
+                        WaitForReconnectStartSubscription();
+                    }
+                    finally
+                    {
+                        barrier.Set(); // Signal Event fired.
+                    }
+                };
+                barrier.Wait(); // Wait for Event to fire.
             }
+
         }
 
-        //
+        /// <summary>
+        /// Waits for reconnect subscription.
+        /// </summary>
+        /// <returns></returns>
         private RabbitMqBasicConsumer WaitForReconnectSubscription()
         {
             var retries = 1;
@@ -368,6 +382,27 @@ namespace NoobCore.RabbitMq
                 {
                     var waitMs = Math.Min(retries++ * 100, 10000);
                     Log.Debug($"Retrying to Reconnect Subscription after {waitMs}ms...", ex);
+                    Thread.Sleep(waitMs);
+                }
+            }
+        }
+        /// <summary>
+        /// Waits for reconnect start subscription.
+        /// </summary>
+        private void WaitForReconnectStartSubscription()
+        {
+            var retries = 1;
+            while (true)
+            {
+                DisposeMqClient();
+                try
+                {
+                    StartSubscription();
+                }
+                catch (Exception ex)
+                {
+                    var waitMs = Math.Min(retries++ * 100, 10000);
+                    Log.Debug($"Retrying to Reconnect Start Subscription after {waitMs}ms...", ex);
                     Thread.Sleep(waitMs);
                 }
             }

@@ -4,6 +4,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using NoobCore.Logging;
 using NoobCore.Messaging;
+using RabbitMQ.Client.Events;
 
 namespace NoobCore.RabbitMq
 {

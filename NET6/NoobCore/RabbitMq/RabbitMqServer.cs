@@ -75,25 +75,55 @@ namespace NoobCore.RabbitMq
             set => messageFactory.MqQueueClientFilter = value;
         }
 
+        /// <summary>
+        /// Gets or sets the mq producer filter.
+        /// </summary>
+        /// <value>
+        /// The mq producer filter.
+        /// </value>
         public Action<RabbitMqProducer> MqProducerFilter
         {
             get => messageFactory.MqProducerFilter;
             set => messageFactory.MqProducerFilter = value;
         }
 
+        /// <summary>
+        /// Gets or sets the publish message filter.
+        /// </summary>
+        /// <value>
+        /// The publish message filter.
+        /// </value>
         public Action<string, IBasicProperties, IMessage> PublishMessageFilter
         {
             get => messageFactory.PublishMessageFilter;
             set => messageFactory.PublishMessageFilter = value;
         }
 
+        /// <summary>
+        /// Gets or sets the get message filter.
+        /// </summary>
+        /// <value>
+        /// The get message filter.
+        /// </value>
         public Action<string, BasicGetResult> GetMessageFilter
         {
             get => messageFactory.GetMessageFilter;
             set => messageFactory.GetMessageFilter = value;
         }
 
+        /// <summary>
+        /// Gets or sets the create queue filter.
+        /// </summary>
+        /// <value>
+        /// The create queue filter.
+        /// </value>
         public Action<string, Dictionary<string,object>> CreateQueueFilter { get; set; }
+        /// <summary>
+        /// Gets or sets the create topic filter.
+        /// </summary>
+        /// <value>
+        /// The create topic filter.
+        /// </value>
         public Action<string, Dictionary<string,object>> CreateTopicFilter { get; set; }
 
         /// <summary>
@@ -153,32 +183,61 @@ namespace NoobCore.RabbitMq
         {
             set => PublishToOutqWhitelist = value ? TypeConstants.EmptyStringArray : null;
         }
-        
+
+        /// <summary>
+        /// The connection
+        /// </summary>
         private IConnection connection;
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         private IConnection Connection => connection ??= ConnectionFactory.CreateConnection();
 
+        /// <summary>
+        /// The handler map
+        /// </summary>
         private readonly Dictionary<Type, IMessageHandlerFactory> handlerMap
             = new Dictionary<Type, IMessageHandlerFactory>();
-
+        /// <summary>
+        /// The handler thread count map
+        /// </summary>
         private readonly Dictionary<Type, int> handlerThreadCountMap
             = new Dictionary<Type, int>();
-
+        /// <summary>
+        /// The workers
+        /// </summary>
         private RabbitMqWorker[] workers;
+        /// <summary>
+        /// The queue worker index map
+        /// </summary>
         private Dictionary<string, int[]> queueWorkerIndexMap;
 
+        /// <summary>
+        /// Get a list of all message types registered on this MQ Host
+        /// </summary>
         public List<Type> RegisteredTypes => handlerMap.Keys.ToList();
 
-        public RabbitMqServer(string connectionString="localhost",
-            string username = null, string password = null)
+        public RabbitMqServer(string connectionString="localhost",string username = null, string password = null)
         {
             Init(new RabbitMqMessageFactory(connectionString, username, password));
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RabbitMqServer"/> class.
+        /// </summary>
+        /// <param name="messageFactory">The message factory.</param>
         public RabbitMqServer(RabbitMqMessageFactory messageFactory)
         {
             Init(messageFactory);
         }
 
+        /// <summary>
+        /// Initializes the specified message factory.
+        /// </summary>
+        /// <param name="messageFactory">The message factory.</param>
         private void Init(RabbitMqMessageFactory messageFactory)
         {
             this.messageFactory = messageFactory;
@@ -187,16 +246,31 @@ namespace NoobCore.RabbitMq
             AutoReconnect = true;
         }
 
+        /// <summary>
+        /// Register DTOs and handlers the MQ Server will process
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="processMessageFn"></param>
         public virtual void RegisterHandler<T>(Func<IMessage<T>, object> processMessageFn)
         {
             RegisterHandler(processMessageFn, null, noOfThreads: 1);
         }
-
+        /// <summary>
+        /// Register DTOs and handlers the MQ Server will process using specified number of threads
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="processMessageFn"></param>
+        /// <param name="noOfThreads"></param>
         public virtual void RegisterHandler<T>(Func<IMessage<T>, object> processMessageFn, int noOfThreads)
         {
             RegisterHandler(processMessageFn, null, noOfThreads);
         }
-
+        /// <summary>
+        /// Register DTOs and handlers the MQ Server will process
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="processMessageFn"></param>
+        /// <param name="processExceptionEx"></param>
         public virtual void RegisterHandler<T>(Func<IMessage<T>, object> processMessageFn, Action<IMessageHandler, IMessage<T>, Exception> processExceptionEx)
         {
             RegisterHandler(processMessageFn, processExceptionEx, noOfThreads: 1);
@@ -219,6 +293,13 @@ namespace NoobCore.RabbitMq
             handlerThreadCountMap[typeof(T)] = noOfThreads;
         }
 
+        /// <summary>
+        /// Creates the message handler factory.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="processMessageFn">The process message function.</param>
+        /// <param name="processExceptionEx">The process exception ex.</param>
+        /// <returns></returns>
         protected IMessageHandlerFactory CreateMessageHandlerFactory<T>(Func<IMessage<T>, object> processMessageFn, Action<IMessageHandler, IMessage<T>, Exception> processExceptionEx)
         {
             return new MessageHandlerFactory<T>(this, processMessageFn, processExceptionEx)
@@ -231,19 +312,56 @@ namespace NoobCore.RabbitMq
             };
         }
 
-        //Stats
+        //Stats        
+        /// <summary>
+        /// The times started
+        /// </summary>
         private long timesStarted = 0;
+        /// <summary>
+        /// The no of errors
+        /// </summary>
         private long noOfErrors = 0;
+        /// <summary>
+        /// The no of continuous errors
+        /// </summary>
         private int noOfContinuousErrors = 0;
+        /// <summary>
+        /// The last ex MSG
+        /// </summary>
         private string lastExMsg = null;
+        /// <summary>
+        /// The status
+        /// </summary>
         private int status;
+        /// <summary>
+        /// The MSG lock
+        /// </summary>
         readonly object msgLock = new object();
+        /// <summary>
+        /// The do operation
+        /// </summary>
         private long doOperation = WorkerOperation.NoOp;
 
-        private Thread bgThread; //Subscription controller thread
+        /// <summary>
+        /// The bg thread
+        /// </summary>
+        private Thread bgThread; //Subscription controller thread        
+        /// <summary>
+        /// The bg thread count
+        /// </summary>
         private long bgThreadCount = 0;
+        /// <summary>
+        /// Gets the bg thread count.
+        /// </summary>
+        /// <value>
+        /// The bg thread count.
+        /// </value>
         public long BgThreadCount => Interlocked.CompareExchange(ref bgThreadCount, 0, 0);
 
+        /// <summary>
+        /// Get Total Current Stats for all Message Handlers
+        /// </summary>
+        /// <returns></returns>
         public virtual IMessageHandlerStats GetStats()
         {
             lock (workers)
@@ -254,11 +372,18 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Get the status of the service. Potential Statuses: Disposed, Stopped, Stopping, Starting, Started
+        /// </summary>
+        /// <returns></returns>
         public virtual string GetStatus()
         {
             return WorkerStatus.ToString(Interlocked.CompareExchange(ref status, 0, 0));
         }
-
+        /// <summary>
+        /// Get a Stats dump
+        /// </summary>
+        /// <returns></returns>
         public virtual string GetStatsDescription()
         {
             lock (workers)
@@ -281,6 +406,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
         public virtual void Init()
         {
             if (workers != null) return;
@@ -341,6 +469,10 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Start the MQ Host if not already started.
+        /// </summary>
+        /// <exception cref="System.ObjectDisposedException">MQ Host has been disposed</exception>
         public virtual void Start()
         {
             if (Interlocked.CompareExchange(ref status, 0, 0) == WorkerStatus.Started)
@@ -399,6 +531,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Runs the loop.
+        /// </summary>
         private void RunLoop()
         {
             if (Interlocked.CompareExchange(ref status, WorkerStatus.Started, WorkerStatus.Starting) != WorkerStatus.Starting) return;
@@ -474,6 +609,10 @@ namespace NoobCore.RabbitMq
             Log.Debug("Exiting RunLoop()...");
         }
 
+        /// <summary>
+        /// Stop the MQ Host if not already stopped.
+        /// </summary>
+        /// <exception cref="System.ObjectDisposedException">MQ Host has been disposed</exception>
         public virtual void Stop()
         {
             if (Interlocked.CompareExchange(ref status, 0, 0) == WorkerStatus.Disposed)
@@ -488,7 +627,10 @@ namespace NoobCore.RabbitMq
                 }
             }
         }
-
+        /// <summary>
+        /// Waits for workers to stop.
+        /// </summary>
+        /// <param name="timeout">The timeout.</param>
         public virtual void WaitForWorkersToStop(TimeSpan? timeout=null)
         {
             ExecUtils.RetryUntilTrue(
@@ -496,6 +638,10 @@ namespace NoobCore.RabbitMq
                 timeout);            
         }
 
+        /// <summary>
+        /// Restarts this instance.
+        /// </summary>
+        /// <exception cref="System.ObjectDisposedException">MQ Host has been disposed</exception>
         public virtual void Restart()
         {
             if (Interlocked.CompareExchange(ref status, 0, 0) == WorkerStatus.Disposed)
@@ -511,6 +657,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Starts the worker threads.
+        /// </summary>
         public virtual void StartWorkerThreads()
         {
             if (Log.IsDebugEnabled)
@@ -530,6 +679,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Stops the worker threads.
+        /// </summary>
         public virtual void StopWorkerThreads()
         {
             if (Log.IsDebugEnabled)
@@ -549,13 +701,20 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Disposes the worker threads.
+        /// </summary>
         void DisposeWorkerThreads()
         {
             if (Log.IsDebugEnabled)
                 Log.Debug("Disposing all Rabbit MQ Server worker threads...");
             workers?.Each(x => x.Dispose());
         }
-
+        /// <summary>
+        /// Workers the error handler.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        /// <param name="ex">The ex.</param>
         void WorkerErrorHandler(RabbitMqWorker source, Exception ex)
         {
             Log.Error("Received exception in Worker: " + source.QueueName, ex);
@@ -573,6 +732,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Kills the bg thread if exists.
+        /// </summary>
         private void KillBgThreadIfExists()
         {
             if (bgThread != null && bgThread.IsAlive)
@@ -593,6 +755,9 @@ namespace NoobCore.RabbitMq
             }
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public virtual void Dispose()
         {
             if (Interlocked.CompareExchange(ref status, 0, 0) == WorkerStatus.Disposed)

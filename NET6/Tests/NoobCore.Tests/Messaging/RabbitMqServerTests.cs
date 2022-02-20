@@ -380,6 +380,8 @@ namespace NoobCore.Tests.Messaging
         {
             string receivedMsgApp = null;
             string receivedMsgType = null;
+            IBasicProperties props = null;
+            BasicGetResult basicMsgResult = null;
 
             using (var mqServer = CreateMqServer())
             {
@@ -389,7 +391,8 @@ namespace NoobCore.Tests.Messaging
                 };
                 mqServer.GetMessageFilter = (queueName, basicMsg) =>
                 {
-                    var props = basicMsg.BasicProperties;
+                    basicMsgResult = basicMsg;
+                    props = basicMsg.BasicProperties;
                     receivedMsgType = props.Type; //automatically added by RabbitMqProducer
                     receivedMsgApp = props.AppId;
                 };
@@ -410,19 +413,16 @@ namespace NoobCore.Tests.Messaging
                 Assert.That(receivedMsgApp, Is.EqualTo($"app:{QueueNames<Hello>.In}"));
                 Assert.That(receivedMsgType, Is.EqualTo(typeof(Hello).Name));
 
-                using (IConnection connection = mqServer.ConnectionFactory.CreateConnection())
-                using (IModel channel = connection.CreateModel())
+                var queueName = QueueNames<HelloResponse>.In;
+                if (props != null)
                 {
-                    var queueName = QueueNames<HelloResponse>.In;
-                    channel.RegisterQueue(queueName);
-
-                    var basicMsg = channel.BasicGet(queueName, autoAck: true);
-                    var props = basicMsg.BasicProperties;
 
                     Assert.That(props.Type, Is.EqualTo(typeof(HelloResponse).Name));
                     Assert.That(props.AppId, Is.EqualTo($"app:{queueName}"));
-
-                    var msg = basicMsg.ToMessage<HelloResponse>();
+                }
+                if (basicMsgResult != null)
+                {
+                    var msg = basicMsgResult.ToMessage<HelloResponse>();
                     Assert.That(msg.GetBody().Result, Is.EqualTo("Hello, Bugs Bunny!"));
                 }
             }
