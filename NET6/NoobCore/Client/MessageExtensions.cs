@@ -147,6 +147,15 @@ namespace NoobCore
                 ? QueueNames<T>.Priority
                 : QueueNames<T>.In;
         }
+        /// <summary>
+        /// Creates the message queue client.
+        /// </summary>
+        /// <param name="mqServer">The mq server.</param>
+        /// <returns></returns>
+        public static IMessageQueueClient CreateMessageQueueClient(this IMessageService mqServer)
+        {
+            return mqServer.MessageFactory.CreateMessageQueueClient();
+        }
 
     }
 

@@ -495,166 +495,166 @@ namespace NoobCore.Tests.Messaging
                 channel.DeleteQueue<Wait>();
             }
         }
-
-       
-    }
-    //Dummy messages to delete Queue's created else where.    
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Incr
-    {
+        //Dummy messages to delete Queue's created else where.    
         /// <summary>
-        /// Gets or sets the value.
+        /// 
         /// </summary>
-        /// <value>
-        /// The value.
-        /// </value>
-        public int Value { get; set; }
-    }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AlwaysThrows { }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Hello { }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class HelloResponse { }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Reverse { }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Rot13 { }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Wait { }
+        public class Incr
+        {
+            /// <summary>
+            /// Gets or sets the value.
+            /// </summary>
+            /// <value>
+            /// The value.
+            /// </value>
+            public int Value { get; set; }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class AlwaysThrows { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class Hello { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class HelloResponse { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class Reverse { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class Rot13 { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public class Wait { }
 
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AnyTestMq
-    {
         /// <summary>
-        /// Gets or sets the identifier.
+        /// 
         /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
-        public int Id { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AnyTestMqAsync
-    {
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
-        public int Id { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AnyTestMqResponse
-    {
-        /// <summary>
-        /// Gets or sets the correlation identifier.
-        /// </summary>
-        /// <value>
-        /// The correlation identifier.
-        /// </value>
-        public int CorrelationId { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class PostTestMq
-    {
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
-        public int Id { get; set; }
-    }
-    /// <summary>
-    /// /
-    /// </summary>
-    public class PostTestMqResponse
-    {
-        /// <summary>
-        /// Gets or sets the correlation identifier.
-        /// </summary>
-        /// <value>
-        /// The correlation identifier.
-        /// </value>
-        public int CorrelationId { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class ValidateTestMq
-    {
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
-        public int Id { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class ValidateTestMqResponse
-    {
-        /// <summary>
-        /// Gets or sets the correlation identifier.
-        /// </summary>
-        /// <value>
-        /// The correlation identifier.
-        /// </value>
-        public int CorrelationId { get; set; }
+        public class AnyTestMq
+        {
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
 
         /// <summary>
-        /// Gets or sets the response status.
+        /// 
         /// </summary>
-        /// <value>
-        /// The response status.
-        /// </value>
-       public ResponseStatus ResponseStatus { get; set; }
-    }
+        public class AnyTestMqAsync
+        {
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class ThrowGenericError
-    {
         /// <summary>
-        /// Gets or sets the identifier.
+        /// 
         /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
-        public int Id { get; set; }
+        public class AnyTestMqResponse
+        {
+            /// <summary>
+            /// Gets or sets the correlation identifier.
+            /// </summary>
+            /// <value>
+            /// The correlation identifier.
+            /// </value>
+            public int CorrelationId { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class PostTestMq
+        {
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
+        /// <summary>
+        /// /
+        /// </summary>
+        public class PostTestMqResponse
+        {
+            /// <summary>
+            /// Gets or sets the correlation identifier.
+            /// </summary>
+            /// <value>
+            /// The correlation identifier.
+            /// </value>
+            public int CorrelationId { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class ValidateTestMq
+        {
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class ValidateTestMqResponse
+        {
+            /// <summary>
+            /// Gets or sets the correlation identifier.
+            /// </summary>
+            /// <value>
+            /// The correlation identifier.
+            /// </value>
+            public int CorrelationId { get; set; }
+
+            /// <summary>
+            /// Gets or sets the response status.
+            /// </summary>
+            /// <value>
+            /// The response status.
+            /// </value>
+            public ResponseStatus ResponseStatus { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class ThrowGenericError
+        {
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
+
     }
+ 
 
 }

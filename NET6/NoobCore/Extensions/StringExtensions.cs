@@ -319,5 +319,28 @@ namespace NoobCore
             }
             return JsonSerializer.Deserialize<T>(json);
         }
+
+        /// <summary>
+        /// Converts to rot13.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public static string ToRot13(this string value)
+        {
+            var array = value.ToCharArray();
+            for (var i = 0; i < array.Length; i++)
+            {
+                var number = (int)array[i];
+
+                if (number >= 'a' && number <= 'z')
+                    number += (number > 'm') ? -13 : 13;
+
+                else if (number >= 'A' && number <= 'Z')
+                    number += (number > 'M') ? -13 : 13;
+
+                array[i] = (char)number;
+            }
+            return new string(array);
+        }
     }
 }
