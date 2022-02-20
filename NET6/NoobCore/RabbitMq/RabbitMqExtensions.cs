@@ -315,7 +315,36 @@ namespace NoobCore.RabbitMq
             return message;
         }
 
+        /// <summary>
+        /// Deletes the queue.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model">The model.</param>
+        public static void DeleteQueue<T>(this IModel model)
+        {
+            model.DeleteQueues(QueueNames<T>.AllQueueNames);
+        }
 
+        /// <summary>
+        /// Deletes the queues.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="queues">The queues.</param>
+        public static void DeleteQueues(this IModel channel, params string[] queues)
+        {
+            foreach (var queue in queues)
+            {
+                try
+                {
+                    channel.QueueDelete(queue, ifUnused: false, ifEmpty: false);
+                }
+                catch (OperationInterruptedException ex)
+                {
+                    if (!ex.Message.Contains("code=404"))
+                        throw;
+                }
+            }
+        }
         /// <summary>
         /// Purges the queue.
         /// </summary>
