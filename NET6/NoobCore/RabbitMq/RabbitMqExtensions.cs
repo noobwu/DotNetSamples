@@ -314,5 +314,37 @@ namespace NoobCore.RabbitMq
 
             return message;
         }
+
+
+        /// <summary>
+        /// Purges the queue.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model">The model.</param>
+        public static void PurgeQueue<T>(this IModel model)
+        {
+            model.PurgeQueues(QueueNames<T>.AllQueueNames);
+        }
+
+        /// <summary>
+        /// Purges the queues.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="queues">The queues.</param>
+        public static void PurgeQueues(this IModel model, params string[] queues)
+        {
+            foreach (var queue in queues)
+            {
+                try
+                {
+                    model.QueuePurge(queue);
+                }
+                catch (OperationInterruptedException ex)
+                {
+                    if (!ex.Is404())
+                        throw;
+                }
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using System.Text;
 
-namespace NoobCore.Tests.MessagingQueue.RabbitMq
+namespace NoobCore.Tests.Messaging
 {
 
 
@@ -20,6 +20,7 @@ namespace NoobCore.Tests.MessagingQueue.RabbitMq
         /// </summary>
         public RabbitMqProducerTests() {
             msgFactory=new RabbitMqMessageFactory();
+
         }
         /// <summary>
         /// 测试消息发送给普通队列
