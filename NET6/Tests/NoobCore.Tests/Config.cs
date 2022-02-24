@@ -13,5 +13,7 @@ namespace NoobCore.Tests
         /// </summary>
         public static readonly string SqlServerConnString = Environment.GetEnvironmentVariable("MSSQL_CONNECTION")
                                             ?? "Server=localhost;Database=test;User Id=test;Password=test;";
+
+
     }
 }
