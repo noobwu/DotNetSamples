@@ -7,7 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NET6", "NET6", "{7DF9F8D2-4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobCore", "NET6\NoobCore\NoobCore.csproj", "{53680802-A6DE-494E-9798-2611B139B061}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoobCore.Tests", "NET6\Tests\NoobCore.Tests\NoobCore.Tests.csproj", "{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobCore.Tests", "NET6\Tests\NoobCore.Tests\NoobCore.Tests.csproj", "{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoobCore.Tests.ConsoleApp", "NET6\Tests\NoobCore.Tests.ConsoleApp\NoobCore.Tests.ConsoleApp.csproj", "{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +25,10 @@ Global
 		{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +36,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{53680802-A6DE-494E-9798-2611B139B061} = {7DF9F8D2-49EC-4B99-84F6-99261329866E}
 		{8C7AE5B3-9515-4B17-A15F-D0E27FA4961C} = {7DF9F8D2-49EC-4B99-84F6-99261329866E}
+		{9B3206E0-A88E-4B3E-BC4C-0F1DCE150775} = {7DF9F8D2-49EC-4B99-84F6-99261329866E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CEF012A9-A66B-4B78-BD94-C76C19783B24}
