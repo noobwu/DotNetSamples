@@ -12,6 +12,7 @@
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="RabbitMQ.Client" Version="6.2.4" />
+    <PackageReference Include="StackExchange.Utils.Http" Version="0.3.41" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
 
