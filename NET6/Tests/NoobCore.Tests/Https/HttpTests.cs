@@ -59,6 +59,39 @@ namespace NoobCore.Tests.Https
             Assert.AreEqual("https://httpbin.org/delete", result.Data.Url);
             Assert.AreEqual(Http.DefaultSettings.UserAgent, result.Data.Headers["User-Agent"]);
         }
+        /// <summary>
+        /// Defines the test method BasicGet.
+        /// </summary>
+        [TestCase]
+        public async Task BasicGet()
+        {
+            var result = await Http.Request("https://httpbin.org/get")
+                                    .ExpectJson<HttpBinResponse>()
+                                    .GetAsync();
+            Assert.True(result.Success);
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.NotNull(result);
+            Assert.AreEqual("https://httpbin.org/get", result.Data.Url);
+            Assert.AreEqual(Http.DefaultSettings.UserAgent, result.Data.Headers["User-Agent"]);
+        }
+
+        /// <summary>
+        /// Defines the test method BasicHead.
+        /// </summary>
+        [TestCase]
+        public async Task BasicHead()
+        {
+            var guid = Guid.NewGuid().ToString();
+            var result = await Http.Request("https://httpbin.org/anything")
+                                    .SendPlaintext(guid)
+                                    .ExpectJson<HttpBinResponse>()
+                                    .PutAsync();
+            Assert.True(result.Success);
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.True(result.Data.Form.ContainsKey(guid));
+            Assert.AreEqual("https://httpbin.org/anything", result.Data.Url);
+            Assert.AreEqual(Http.DefaultSettings.UserAgent, result.Data.Headers["User-Agent"]);
+        }
 
     }
 }
