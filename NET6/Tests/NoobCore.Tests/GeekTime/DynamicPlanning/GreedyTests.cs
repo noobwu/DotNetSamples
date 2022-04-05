@@ -201,6 +201,7 @@ namespace NoobCore.Tests.GeekTime.DynamicPlanning
             {
                 return -1;
             }
+            coins=coins.OrderByDescending(x => x).ToArray();  
 
             //当前币值
             int currentCoin = coins[0];
