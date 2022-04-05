@@ -310,11 +310,6 @@ namespace NoobCore.Tests.GeekTime.DynamicPlanning
         {
             //values = values.OrderByDescending(x => x).ToArray(); // 硬币面值的数组
             values = values.OrderBy(x => x).ToArray(); // 硬币面值的数组
-            //// 入口函数
-            //int[] values = { 3, 5 }; // 硬币面值
-            //int total = 14; // 总值
-
-        
             int[] memo = Enumerable.Range(0, total + 1).Select(i => -2).ToArray(); ;// , -2); // 备忘录，没有缓存的元素为-2
             memo[0] = 0; // 其中0对应的结果也是0，首先存在备忘录中
 
