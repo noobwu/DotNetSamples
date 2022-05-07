@@ -12,6 +12,7 @@ namespace NoobCore.Tests.Algorithms
     /// <summary>
     /// 
     /// </summary>
+    [TestFixture]
     public class DynamicPlanningTests
     {
 
