@@ -75,11 +75,52 @@ namespace NoobCore.Tests.Algorithms
             var sizeInEvenBytes = (m + 7) & ~7;
 
             _bitArray = new BitArray(length: sizeInEvenBytes);
+            
             _hashFunctionCount = k;
             _isCaseSensitive = isCaseSensitive;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="falsePositiveProbability"></param>
+        /// <param name="isCaseSensitive"></param>
+        /// <param name="values"></param>
+        public BloomFilter(double falsePositiveProbability, bool isCaseSensitive, ICollection<string> values)
+            : this(values.Count, falsePositiveProbability, isCaseSensitive)
+        {
+            AddRange(values);
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="falsePositiveProbability"></param>
+        /// <param name="stringValues"></param>
+        /// <param name="longValues"></param>
+        public BloomFilter(
+            double falsePositiveProbability,
+            ICollection<string> stringValues,
+            ICollection<long> longValues)
+            : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)
+        {
+            AddRange(stringValues);
+            AddRange(longValues);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bitArray"></param>
+        /// <param name="hashFunctionCount"></param>
+        /// <param name="isCaseSensitive"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        private BloomFilter(BitArray bitArray, int hashFunctionCount, bool isCaseSensitive)
+        {
+            _bitArray = bitArray ?? throw new ArgumentNullException(nameof(bitArray));
+            _hashFunctionCount = hashFunctionCount;
+            _isCaseSensitive = isCaseSensitive;
+        }
         /// <summary>
         /// Computes the m.
         /// m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))

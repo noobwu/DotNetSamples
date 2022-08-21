@@ -13,6 +13,7 @@
 // <summary></summary>
 // ***********************************************************************
 using Microsoft.VisualBasic;
+using Sigil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -157,6 +158,50 @@ namespace NoobCore.Tests.Algorithms
         }
 
         /// <summary>
+        /// Defines the test method TestInt64.
+        /// </summary>
+        [Fact]
+        public void TestInt64()
+        {
+            var longs = CreateLongs(GenerateStrings(2000).Skip(500).Take(1000).Select(s => s.GetHashCode()).ToList());
+            int total = 100000;
+            var testLongs = CreateLongs(GenerateStrings(total).Select(s => s.GetHashCode()).ToList());
+
+            for (var d = 0.1; d >= 0.0001; d /= 10)
+            {
+                var filter = new BloomFilter(d, new string[] { }, longs);
+
+                var correctCount = 0.0;
+                var incorrectCount = 0.0;
+                foreach (var test in testLongs)
+                {
+                    var actualContains = longs.Contains(test);
+                    var filterContains = filter.ProbablyContains(test);
+
+                    if (!filterContains)
+                    {
+                        // if the filter says no, then it can't be in the real set.
+                        Assert.False(actualContains);
+                    }
+
+                    if (actualContains == filterContains)
+                    {
+                        correctCount++;
+                    }
+                    else
+                    {
+                        incorrectCount++;
+                    }
+                }
+
+                var falsePositivePercentage = incorrectCount / (correctCount + incorrectCount);
+                string msg = $"total={total},correctCount={correctCount},incorrectCount={incorrectCount},falsePositivePercentage={falsePositivePercentage}, d={d}";
+                _testOutputHelper.WriteLine(msg);
+
+                Assert.True(falsePositivePercentage < (d * 1.5), msg);
+            }
+        }
+        /// <summary>
         /// Creates the longs.
         /// </summary>
         /// <param name="ints">The ints.</param>
@@ -176,16 +221,5 @@ namespace NoobCore.Tests.Algorithms
             return result;
         }
 
-        /// <summary>
-        /// Defines the test method FalsePositiveProbability.
-        /// </summary>
-        [Fact]
-        public void FalsePositiveProbability() {
-            var isCaseSensitive=true; //是否区分大小写
-            var falsePositiveProbability = 0.01d;//错误概率(假阳性概率)
-            var testStrings = GenerateStrings(100000);
-            var filter = new BloomFilter(testStrings.Count(), falsePositiveProbability, isCaseSensitive);
-            filter.AddRange(testStrings);
-        }
     }
 }
