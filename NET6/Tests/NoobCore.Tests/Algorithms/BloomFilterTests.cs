@@ -12,12 +12,14 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NoobCore.Tests.Algorithms
 {
@@ -26,12 +28,22 @@ namespace NoobCore.Tests.Algorithms
     /// </summary>
     public class BloomFilterTests
     {
+        private  readonly ITestOutputHelper _testOutputHelper;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BloomFilterTests"/> class.
+        /// </summary>
+        /// <param name="testOutputHelper">The test output helper.</param>
+        public BloomFilterTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
         /// <summary>
         /// Generates the strings.
         /// </summary>
         /// <param name="count">The count.</param>
         /// <returns>IEnumerable&lt;System.String&gt;.</returns>
-        private static IEnumerable<string> GenerateStrings(int count)
+        private  IEnumerable<string> GenerateStrings(int count)
         {
             for (var i = 1; i <= count; i++)
             {
@@ -44,7 +56,7 @@ namespace NoobCore.Tests.Algorithms
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>System.String.</returns>
-        private static string GenerateString(int value)
+        private  string GenerateString(int value)
         {
             const string Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var builder = new StringBuilder();
@@ -64,11 +76,12 @@ namespace NoobCore.Tests.Algorithms
         /// Tests the specified is case sensitive.
         /// </summary>
         /// <param name="isCaseSensitive">if set to <c>true</c> [is case sensitive].</param>
-        private static void Test(bool isCaseSensitive)
+        private  void Test(bool isCaseSensitive)
         {
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             var strings = GenerateStrings(2000).Skip(500).Take(1000).ToSet(comparer);
-            var testStrings = GenerateStrings(100000);
+            int total = 100000; // 总数量
+            var testStrings = GenerateStrings(total);
             //Console.WriteLine($"strings:{strings},testStrings:{testStrings}");
 
             for (var d = 0.1; d >= 0.0001; d /= 10)
@@ -100,7 +113,10 @@ namespace NoobCore.Tests.Algorithms
                 }
 
                 var falsePositivePercentage = incorrectCount / (correctCount + incorrectCount);
-                Assert.True(falsePositivePercentage < (d * 1.5), string.Format("falsePositivePercentage={0}, d={1}", falsePositivePercentage, d));
+                string msg = $"total={total},correctCount={correctCount},incorrectCount={incorrectCount},falsePositivePercentage={falsePositivePercentage}, d={d}";
+                _testOutputHelper.WriteLine(msg);
+
+                Assert.True(falsePositivePercentage < (d * 1.5), msg);
             }
         }
 
@@ -158,6 +174,18 @@ namespace NoobCore.Tests.Algorithms
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Defines the test method FalsePositiveProbability.
+        /// </summary>
+        [Fact]
+        public void FalsePositiveProbability() {
+            var isCaseSensitive=true; //是否区分大小写
+            var falsePositiveProbability = 0.01d;//错误概率(假阳性概率)
+            var testStrings = GenerateStrings(100000);
+            var filter = new BloomFilter(testStrings.Count(), falsePositiveProbability, isCaseSensitive);
+            filter.AddRange(testStrings);
         }
     }
 }

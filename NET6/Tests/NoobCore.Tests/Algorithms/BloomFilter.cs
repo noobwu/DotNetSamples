@@ -34,7 +34,7 @@ namespace NoobCore.Tests.Algorithms
         /// <summary>
         /// The compute hash m
         /// </summary>
-        private const uint Compute_Hash_m = 0x5bd1e995;
+        private const uint Compute_Hash_m = 0x5bd1e995;//1540483477
         /// <summary>
         /// The compute hash r
         /// </summary>
@@ -84,8 +84,8 @@ namespace NoobCore.Tests.Algorithms
         /// Computes the m.
         /// m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))
         /// </summary>
-        /// <param name="expectedCount">The expected count.</param>
-        /// <param name="falsePositiveProbability">The false positive probability.</param>
+        /// <param name="expectedCount">预计添加到过滤器中的元素数量</param>
+        /// <param name="falsePositiveProbability">错误概率(假阳性概率)</param>
         /// <returns>System.Int32.</returns>
         private static int ComputeM(int expectedCount, double falsePositiveProbability)
         {
@@ -101,8 +101,8 @@ namespace NoobCore.Tests.Algorithms
         /// Computes the k.
         /// k = round(log(2.0) * m / n)
         /// </summary>
-        /// <param name="expectedCount">The expected count.</param>
-        /// <param name="falsePositiveProbability">The false positive probability.</param>
+        /// <param name="expectedCount">预计添加到过滤器中的元素数量</param>
+        /// <param name="falsePositiveProbability">错误概率(假阳性概率)</param>
         /// <returns>System.Int32.</returns>
         private static int ComputeK(int expectedCount, double falsePositiveProbability)
         {
