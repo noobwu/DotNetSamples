@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -198,6 +199,67 @@ namespace NoobCore
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEmpty<T>(this T[] collection) => collection == null || collection.Length == 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsEmpty<T>(this IEnumerable<T> collection)
+        {
+            return collection == null || collection.Count() == 0;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsAny<T>(this ICollection<T> collection)
+        {
+            return collection != null && collection.Count > 0;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsAny<T>(this T[] collection)
+        {
+            return collection != null && collection.Length > 0;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsAny<T>(this IEnumerable<T> collection)
+        {
+            return collection != null && collection.Count() > 0;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsEmpty(this NameValueCollection collection)
+        {
+            return collection == null || collection.Count == 0 || collection.AllKeys.IsEmpty();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static bool IsAny(this NameValueCollection collection)
+        {
+            return collection != null && collection.Count > 0 && collection.AllKeys.IsAny();
+        }
 
 
         /// <summary>
@@ -725,5 +787,6 @@ namespace NoobCore
             return typeof(string);
         }
         
+
     }
 }
