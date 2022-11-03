@@ -2,9 +2,11 @@
 // Assembly         : NoobCore.Tests
 // Author           : Administrator
 // Created          : 2022-09-24
+// Github           : https://github.com/Apress/pro-.net-perf/blob/master/Ch06/Ch06/Program.cs
 //
 // Last Modified By : Administrator
-// Last Modified On : 2022-09-24
+// Last Modified On : 2022-09-25
+
 // ***********************************************************************
 // <copyright file="PerformanceTests.cs" company="NoobCore.Tests">
 //     Copyright (c) . All rights reserved.
@@ -17,6 +19,9 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 
+/// <summary>
+/// The Performance namespace.
+/// </summary>
 namespace NoobCore.Tests.Performance
 {
     /// <summary>
@@ -103,6 +108,8 @@ namespace NoobCore.Tests.Performance
         /// <summary>
         /// Primeses the in range threads test.
         /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
         [TestCaseSource(nameof(PrimesInRange_Test_Source))]
         public void PrimesInRange_Threads_Test(uint start, uint end)
         {
@@ -151,55 +158,118 @@ namespace NoobCore.Tests.Performance
         /// <summary>
         /// Primeses the in range threads test.
         /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
         [TestCaseSource(nameof(PrimesInRange_Test_Source))]
-        public void PrimesInRange_ThreadPool_Test(uint start, uint end) {
+        public void PrimesInRange_ThreadPool_Test(uint start, uint end)
+        {
             Measure(() => PrimesInRange_ThreadPool(start, end), $"PrimesInRange_ThreadPool({start}, {end})");
         }
 
 
+
+        /// <summary>
+        /// Primeses the in range parallel for.
+        /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns>IEnumerable&lt;System.UInt32&gt;.</returns>
+        public IEnumerable<uint> PrimesInRange_ParallelFor(uint start, uint end)
+        {
+            List<uint> primes = new List<uint>();
+            Parallel.For((long)start, (long)end, number =>
+            {
+                if (IsPrime((uint)number))
+                {
+                    lock (primes)
+                    {
+                        primes.Add((uint)number);
+                    }
+                }
+            });
+            return primes;
+        }
+
+        /// <summary>
+        /// Primeses the in range aggregation.
+        /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns>IEnumerable&lt;System.UInt32&gt;.</returns>
+        public IEnumerable<uint> PrimesInRange_Aggregation(uint start, uint end)
+        {
+            List<uint> primes = new List<uint>();
+            Parallel.For(3, 200000,
+              () => new List<uint>(),        //initialize the local copy
+              (i, pls, localPrimes) =>
+              {    //single computation step, returns new local state
+                  if (IsPrime((uint)i))
+                  {
+                      localPrimes.Add((uint)i);       //no synchronization necessary, thread-local state
+                  }
+                  return localPrimes;
+              },
+              localPrimes =>
+              {              //combine the local lists to the global one
+                  lock (primes)
+                  {              //synchronization is required
+                      primes.AddRange(localPrimes);
+                  }
+              }
+            );
+            return primes;
+        }
         /// <summary>
         /// Primeses the in range threads test.
         /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
         [TestCaseSource(nameof(PrimesInRange_Test_Source))]
         public void PrimesInRange_Tests(uint start, uint end)
         {
             Measure(() => PrimesInRange(start, end), $"PrimesInRange({start}, {end})");
             Measure(() => PrimesInRange_Threads(start, end), $"PrimesInRange_Threads({start}, {end})");
             Measure(() => PrimesInRange_ThreadPool(start, end), $"PrimesInRange_ThreadPool({start}, {end})");
+            Measure(() => PrimesInRange_ParallelFor(start, end), $"PrimesInRange_ParallelFor({start}, {end})");
+            Measure(() => PrimesInRange_Aggregation(start, end), $"PrimesInRange_Aggregation({start}, {end})");
+
         }
 
         /// <summary>
         /// Primeses the in range test source.
         /// </summary>
         /// <returns>IEnumerable.</returns>
-        public static IEnumerable PrimesInRange_Test_Source() {
+        public static IEnumerable PrimesInRange_Test_Source()
+        {
             yield return new TestCaseData((uint)100, (uint)200000);
         }
 
 
+
+
         /// <summary>
-        /// Quicks the sort.
+        /// Quicks the sort sequential.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The items.</param>
-        public  void QuickSort<T>(T[] items) where T : IComparable<T>
+        public void QuickSort_Sequential<T>(T[] items) where T : IComparable<T>
         {
-            QuickSort(items, 0, items.Length);
+            QuickSort_Sequential(items, 0, items.Length);
         }
 
         /// <summary>
-        /// Quicks the sort.
+        /// Quicks the sort sequential.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The items.</param>
         /// <param name="left">The left.</param>
         /// <param name="right">The right.</param>
-        private  void QuickSort<T>(T[] items, int left, int right) where T : IComparable<T>
+        private void QuickSort_Sequential<T>(T[] items, int left, int right) where T : IComparable<T>
         {
             if (left == right) return;
             int pivot = Partition(items, left, right);
-            QuickSort(items, left, pivot);
-            QuickSort(items, pivot + 1, right);
+            QuickSort_Sequential(items, left, pivot);
+            QuickSort_Sequential(items, pivot + 1, right);
         }
 
         /// <summary>
@@ -210,9 +280,9 @@ namespace NoobCore.Tests.Performance
         /// <param name="left">The left.</param>
         /// <param name="right">The right.</param>
         /// <returns>System.Int32.</returns>
-        private  int Partition<T>(T[] items, int left, int right) where T : IComparable<T>
+        private int Partition<T>(T[] items, int left, int right) where T : IComparable<T>
         {
-            int pivotPos = RandomHelper.Next(left,right); //often a random index between left and right is used
+            int pivotPos = (right - left) / 2; //often a random index between left and right is used
             T pivotValue = items[pivotPos];
             Swap(ref items[right - 1], ref items[pivotPos]);
             int store = left;
@@ -240,12 +310,35 @@ namespace NoobCore.Tests.Performance
             a = b;
             b = temp;
         }
+
+        /// <summary>
+        /// Quicks the sort tests.
+        /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        [TestCaseSource(nameof(QuickSort_Test_Source))]
+        public void QuickSort_Tests(int start, int end)
+        {
+            Random rnd = new Random();
+            Measure(() => Enumerable.Range(start, end).Select(n => rnd.Next()).ToArray(), QuickSort_Sequential, $"QuickSort_Sequential ({end} including allocation)");
+        }
+
+
+        /// <summary>
+        /// Primeses the in range test source.
+        /// </summary>
+        /// <returns>IEnumerable.</returns>
+        public static IEnumerable QuickSort_Test_Source()
+        {
+            yield return new TestCaseData(0, 1000000);
+        }
+
         /// <summary>
         /// Measures the specified what.
         /// </summary>
         /// <param name="what">The what.</param>
         /// <param name="description">The description.</param>
-        private  void Measure(Action what, string description)
+        private void Measure(Action what, string description)
         {
             const int ITERATIONS = 5;
             double[] elapsed = new double[ITERATIONS];
@@ -264,7 +357,7 @@ namespace NoobCore.Tests.Performance
         /// <param name="setup">The setup.</param>
         /// <param name="measurement">The measurement.</param>
         /// <param name="description">The description.</param>
-        private  void Measure<T>(Func<T> setup, Action<T> measurement, string description)
+        private void Measure<T>(Func<T> setup, Action<T> measurement, string description)
         {
             T state = setup();
             Measure(() => measurement(state), description);
