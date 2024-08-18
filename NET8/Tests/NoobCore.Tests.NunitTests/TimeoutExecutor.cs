@@ -122,7 +122,7 @@ public static class TimeoutExecutor
         TimeSpan timeout,
         CancellationTokenSource combinedTokenSource,
         CancellationTokenSource timeoutCancellationTokenSource,
-        Action<TimeSpan, Task, Exception> onTimeout)
+        Action<TimeSpan, Task, Exception>? onTimeout)
     {
         var task = Task.Run(() => taskFunc(combinedTokenSource.Token), combinedTokenSource.Token);
 
