@@ -75,11 +75,11 @@ public static class TimeoutExecutor
     /// <param name="cancellationToken">用于取消任务的CancellationToken。</param>
     /// <returns>任务的返回值。</returns>
     private static TResult RunWithTimeoutInternal<TResult>(
-        Func<CancellationToken, TResult> taskFunc,
-        Func<TimeSpan> timeoutProvider,
-        TimeoutStrategy timeoutStrategy,
-        Action<TimeSpan, Task, Exception> onTimeout,
-        CancellationToken cancellationToken)
+    Func<CancellationToken, TResult> taskFunc,
+    Func<TimeSpan> timeoutProvider,
+    TimeoutStrategy timeoutStrategy,
+    Action<TimeSpan, Task, Exception> onTimeout,
+    CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         TimeSpan timeout = timeoutProvider();
@@ -92,11 +92,40 @@ public static class TimeoutExecutor
             if (timeoutStrategy == TimeoutStrategy.Optimistic)
             {
                 SystemClock.CancelTokenAfter(timeoutCancellationTokenSource, timeout);
-                return taskFunc(combinedTokenSource.Token);
+                var task = Task.Run(() => taskFunc(combinedTokenSource.Token), combinedTokenSource.Token);
+
+                var completedTask = Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token)).Result;
+
+                if (completedTask == task)
+                {
+                    try
+                    {
+                        return task.Result;  // Task completed within the timeout
+                    }
+                    catch (AggregateException ex)
+                    {
+                        // Unwrap the AggregateException to check for TaskCanceledException
+                        var flattened = ex.Flatten();
+                        if (flattened.InnerExceptions.Any(inner => inner is TaskCanceledException))
+                        {
+                            throw new OperationCanceledException("The operation was canceled.", ex, cancellationToken);
+                        }
+                        throw;
+                    }
+                }
+                else
+                {
+                    // The task timed out
+                    throw new TimeoutException($"The operation timed out after {timeout.TotalMilliseconds} ms.");
+                }
             }
 
-            // Pessimistic timeout strategy
+            // Handle pessimistic timeout strategy
             return ExecuteWithPessimisticTimeout(taskFunc, timeout, combinedTokenSource, timeoutCancellationTokenSource, onTimeout);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;  // Re-throw the OperationCanceledException if it was due to the user's cancellation token
         }
         catch (Exception ex) when (ex is OperationCanceledException && timeoutCancellationTokenSource.IsCancellationRequested)
         {

@@ -34,3 +34,7 @@ dotnet sln remove StackExchange/StackExchange.Utils/StackExchange.Utils.csproj
 #### 在终端中，运行以下命令，添加第三方包
 
 dotnet add StackExchange/StackExchange.Utils/StackExchange.Utils.csproj package Newtonsoft.Json
+
+### 在终端中，运行以下命令，执行单元测试
+
+dotnet test .\NET8\Tests\NoobCore.Tests.NunitTests\NoobCore.Tests.NunitTests.csproj

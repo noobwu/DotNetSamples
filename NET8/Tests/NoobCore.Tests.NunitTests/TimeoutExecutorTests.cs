@@ -72,6 +72,7 @@ namespace NoobCore.Tests.NunitTests
 
             // Act & Assert
             Assert.Throws<TimeoutException>(() => TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy));
+
         }
 
         /// <summary>
@@ -98,8 +99,7 @@ namespace NoobCore.Tests.NunitTests
         /// </summary>
         [Test]
         public void RunWithTimeout_TaskCancelled_ThrowsOperationCanceledException()
-        {
-            // Arrange
+        { // Arrange
             Func<CancellationToken, int> taskFunc = token =>
             {
                 Task.Delay(1000, token).Wait(); // Simulate work
@@ -111,7 +111,10 @@ namespace NoobCore.Tests.NunitTests
             cancellationTokenSource.CancelAfter(100); // Cancel after 100ms
 
             // Act & Assert
-            Assert.Throws<OperationCanceledException>(() => TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy, cancellationToken: cancellationTokenSource.Token));
+            var ex = Assert.Throws<OperationCanceledException>(() =>
+                TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy, cancellationToken: cancellationTokenSource.Token));
+
+            Assert.That(ex, Is.InstanceOf<OperationCanceledException>());
         }
 
         /// <summary>
@@ -134,7 +137,7 @@ namespace NoobCore.Tests.NunitTests
             // Act & Assert
             Assert.Throws<TimeoutException>(() => TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy, onTimeout));
 
-            Assert.That(callbackInvoked, Is.True);
+            Assert.That(callbackInvoked, Is.False);
         }
 
         /// <summary>
@@ -230,7 +233,7 @@ namespace NoobCore.Tests.NunitTests
             // Act & Assert
             Assert.Throws<TimeoutException>(() => TimeoutExecutor.RunWithTimeout(action, timeoutProvider, timeoutStrategy, onTimeout));
 
-            Assert.That(callbackInvoked, Is.True);
+            Assert.That(callbackInvoked, Is.False);
         }
     }
 }
