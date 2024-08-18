@@ -21,16 +21,8 @@ public enum TimeoutStrategy
 public static class TimeoutExecutor
 {
     /// <summary>
-    /// 执行一个有返回值的任务，并在指定的超时时间内完成。
-    /// 如果任务未在指定时间内完成，则抛出TimeoutException异常。
+    /// 执行一个有返回值的任务，并在指定的超时时间内完成。如果任务未在指定时间内完成，则抛出 TimeoutException 异常。
     /// </summary>
-    /// <typeparam name="TResult">任务返回值的类型。</typeparam>
-    /// <param name="taskFunc">要执行的任务函数。</param>
-    /// <param name="timeoutProvider">超时时间提供者函数。</param>
-    /// <param name="timeoutStrategy">超时策略。</param>
-    /// <param name="onTimeout">超时后的回调函数。</param>
-    /// <param name="cancellationToken">用于取消任务的CancellationToken。</param>
-    /// <returns>任务的返回值。</returns>
     public static TResult RunWithTimeout<TResult>(
         Func<CancellationToken, TResult> taskFunc,
         Func<TimeSpan> timeoutProvider,
@@ -42,19 +34,13 @@ public static class TimeoutExecutor
     }
 
     /// <summary>
-    /// 执行一个没有返回值的任务，并在指定的超时时间内完成。
-    /// 如果任务未在指定时间内完成，则抛出TimeoutException异常。
+    /// 执行一个没有返回值的任务，并在指定的超时时间内完成。如果任务未在指定时间内完成，则抛出 TimeoutException 异常。
     /// </summary>
-    /// <param name="action">要执行的任务操作。</param>
-    /// <param name="timeoutProvider">超时时间提供者函数。</param>
-    /// <param name="timeoutStrategy">超时策略。</param>
-    /// <param name="onTimeout">超时后的回调函数。</param>
-    /// <param name="cancellationToken">用于取消任务的CancellationToken。</param>
     public static void RunWithTimeout(
         Action<CancellationToken> action,
         Func<TimeSpan> timeoutProvider,
         TimeoutStrategy timeoutStrategy,
-        Action<TimeSpan, Task, Exception> onTimeout = null,
+        Action<TimeSpan, Task, Exception>? onTimeout = null,
         CancellationToken cancellationToken = default)
     {
         RunWithTimeoutInternal(token =>
@@ -67,19 +53,12 @@ public static class TimeoutExecutor
     /// <summary>
     /// 内部方法：处理任务并处理超时逻辑。
     /// </summary>
-    /// <typeparam name="TResult">任务返回值的类型。</typeparam>
-    /// <param name="taskFunc">要执行的任务函数。</param>
-    /// <param name="timeoutProvider">超时时间提供者函数。</param>
-    /// <param name="timeoutStrategy">超时策略。</param>
-    /// <param name="onTimeout">超时后的回调函数。</param>
-    /// <param name="cancellationToken">用于取消任务的CancellationToken。</param>
-    /// <returns>任务的返回值。</returns>
     private static TResult RunWithTimeoutInternal<TResult>(
-    Func<CancellationToken, TResult> taskFunc,
-    Func<TimeSpan> timeoutProvider,
-    TimeoutStrategy timeoutStrategy,
-    Action<TimeSpan, Task, Exception> onTimeout,
-    CancellationToken cancellationToken)
+        Func<CancellationToken, TResult> taskFunc,
+        Func<TimeSpan> timeoutProvider,
+        TimeoutStrategy timeoutStrategy,
+        Action<TimeSpan, Task, Exception>? onTimeout,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         TimeSpan timeout = timeoutProvider();
@@ -87,63 +66,57 @@ public static class TimeoutExecutor
         using var timeoutCancellationTokenSource = new CancellationTokenSource();
         using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
 
-        try
+        if (timeoutStrategy == TimeoutStrategy.Optimistic)
         {
-            if (timeoutStrategy == TimeoutStrategy.Optimistic)
-            {
-                SystemClock.CancelTokenAfter(timeoutCancellationTokenSource, timeout);
-                var task = Task.Run(() => taskFunc(combinedTokenSource.Token), combinedTokenSource.Token);
-
-                var completedTask = Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token)).Result;
-
-                if (completedTask == task)
-                {
-                    try
-                    {
-                        return task.Result;  // Task completed within the timeout
-                    }
-                    catch (AggregateException ex)
-                    {
-                        // Unwrap the AggregateException to check for TaskCanceledException
-                        var flattened = ex.Flatten();
-                        if (flattened.InnerExceptions.Any(inner => inner is TaskCanceledException))
-                        {
-                            throw new OperationCanceledException("The operation was canceled.", ex, cancellationToken);
-                        }
-                        throw;
-                    }
-                }
-                else
-                {
-                    // The task timed out
-                    throw new TimeoutException($"The operation timed out after {timeout.TotalMilliseconds} ms.");
-                }
-            }
-
-            // Handle pessimistic timeout strategy
+            return ExecuteOptimisticTimeout(taskFunc, timeout, combinedTokenSource, timeoutCancellationTokenSource, cancellationToken);
+        }
+        else
+        {
             return ExecuteWithPessimisticTimeout(taskFunc, timeout, combinedTokenSource, timeoutCancellationTokenSource, onTimeout);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    }
+
+    /// <summary>
+    /// 执行带有乐观超时策略的任务。
+    /// </summary>
+    private static TResult ExecuteOptimisticTimeout<TResult>(
+        Func<CancellationToken, TResult> taskFunc,
+        TimeSpan timeout,
+        CancellationTokenSource combinedTokenSource,
+        CancellationTokenSource timeoutCancellationTokenSource,
+        CancellationToken cancellationToken)
+    {
+        SystemClock.CancelTokenAfter(timeoutCancellationTokenSource, timeout);
+
+        var task = Task.Run(() => taskFunc(combinedTokenSource.Token), combinedTokenSource.Token);
+
+        var completedTask = Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token)).Result;
+
+        if (completedTask == task)
         {
-            throw;  // Re-throw the OperationCanceledException if it was due to the user's cancellation token
+            try
+            {
+                return task.Result;  // 任务在超时时间内完成
+            }
+            catch (AggregateException ex)
+            {
+                // 处理取消操作
+                if (ex.Flatten().InnerExceptions.Any(e => e is TaskCanceledException))
+                {
+                    throw new OperationCanceledException("操作已被取消。", ex, cancellationToken);
+                }
+                throw;
+            }
         }
-        catch (Exception ex) when (ex is OperationCanceledException && timeoutCancellationTokenSource.IsCancellationRequested)
+        else
         {
-            onTimeout?.Invoke(timeout, null, ex);
-            throw new TimeoutException($"The operation timed out after {timeout.TotalMilliseconds} ms.", ex);
+            throw new TimeoutException($"操作在 {timeout.TotalMilliseconds} 毫秒后超时。");
         }
     }
 
     /// <summary>
     /// 执行带有悲观超时策略的任务。
     /// </summary>
-    /// <typeparam name="TResult">任务返回值的类型。</typeparam>
-    /// <param name="taskFunc">要执行的任务函数。</param>
-    /// <param name="timeout">指定的超时时间。</param>
-    /// <param name="combinedTokenSource">组合的CancellationTokenSource。</param>
-    /// <param name="timeoutCancellationTokenSource">超时CancellationTokenSource。</param>
-    /// <param name="onTimeout">超时后的回调函数。</param>
-    /// <returns>任务的返回值。</returns>
     private static TResult ExecuteWithPessimisticTimeout<TResult>(
         Func<CancellationToken, TResult> taskFunc,
         TimeSpan timeout,
@@ -159,8 +132,8 @@ public static class TimeoutExecutor
         }
         else
         {
-            onTimeout?.Invoke(timeout, task, new TimeoutException($"The operation timed out after {timeout.TotalMilliseconds} ms."));
-            throw new TimeoutException($"The operation timed out after {timeout.TotalMilliseconds} ms.");
+            onTimeout?.Invoke(timeout, task, new TimeoutException($"操作在 {timeout.TotalMilliseconds} 毫秒后超时。"));
+            throw new TimeoutException($"操作在 {timeout.TotalMilliseconds} 毫秒后超时。");
         }
     }
 
