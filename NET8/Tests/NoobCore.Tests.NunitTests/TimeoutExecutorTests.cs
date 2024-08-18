@@ -52,7 +52,7 @@ namespace NoobCore.Tests.NunitTests
             var result = TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy);
 
             // Assert
-            //Assert.AreEqual(42, result);
+            Assert.That(result, Is.EqualTo(42));
         }
 
         /// <summary>
@@ -133,7 +133,8 @@ namespace NoobCore.Tests.NunitTests
 
             // Act & Assert
             Assert.Throws<TimeoutException>(() => TimeoutExecutor.RunWithTimeout(taskFunc, timeoutProvider, timeoutStrategy, onTimeout));
-            //Assert.IsTrue(callbackInvoked);
+
+            Assert.That(callbackInvoked, Is.True);
         }
 
         /// <summary>
@@ -228,7 +229,8 @@ namespace NoobCore.Tests.NunitTests
 
             // Act & Assert
             Assert.Throws<TimeoutException>(() => TimeoutExecutor.RunWithTimeout(action, timeoutProvider, timeoutStrategy, onTimeout));
-            //Assert.IsTrue(callbackInvoked);
+
+            Assert.That(callbackInvoked, Is.True);
         }
     }
 }
