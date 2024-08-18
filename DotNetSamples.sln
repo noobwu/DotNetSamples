@@ -21,6 +21,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BeautyProgramming", "Beauty
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeautyProgramming.ConsoleApp", "BeautyProgramming.ConsoleApp\BeautyProgramming.ConsoleApp.csproj", "{CE0E0CB1-BD1D-48CC-A020-F0E274C14797}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NET8", "NET8", "{3D61363D-C4A8-4546-817C-25BB034FA171}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8C86904D-8589-4889-B117-06A34CE1B6A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoobCore.Tests.NunitTests", "NET8\Tests\NoobCore.Tests.NunitTests\NoobCore.Tests.NunitTests.csproj", "{CAFB63E9-13E8-439B-8BC3-AAF101473D90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +53,10 @@ Global
 		{CE0E0CB1-BD1D-48CC-A020-F0E274C14797}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE0E0CB1-BD1D-48CC-A020-F0E274C14797}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE0E0CB1-BD1D-48CC-A020-F0E274C14797}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAFB63E9-13E8-439B-8BC3-AAF101473D90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAFB63E9-13E8-439B-8BC3-AAF101473D90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAFB63E9-13E8-439B-8BC3-AAF101473D90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAFB63E9-13E8-439B-8BC3-AAF101473D90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +70,8 @@ Global
 		{99344B35-7542-438C-9527-99E9BC26239F} = {7DF9F8D2-49EC-4B99-84F6-99261329866E}
 		{2F11C0EA-CE30-44AA-AED6-E8DFC0CA9153} = {7DF9F8D2-49EC-4B99-84F6-99261329866E}
 		{CE0E0CB1-BD1D-48CC-A020-F0E274C14797} = {2F11C0EA-CE30-44AA-AED6-E8DFC0CA9153}
+		{8C86904D-8589-4889-B117-06A34CE1B6A6} = {3D61363D-C4A8-4546-817C-25BB034FA171}
+		{CAFB63E9-13E8-439B-8BC3-AAF101473D90} = {8C86904D-8589-4889-B117-06A34CE1B6A6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CEF012A9-A66B-4B78-BD94-C76C19783B24}
